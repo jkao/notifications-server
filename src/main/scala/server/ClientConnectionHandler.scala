@@ -3,6 +3,7 @@ package server
 import events.EventPublishParams
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.{ServerSocket, Socket}
+import java.util.logging.Logger
 import scala.collection.concurrent.{Map => ConcurrentMap, TrieMap}
 import scala.concurrent.duration.{Duration, MILLISECONDS}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,18 +12,23 @@ import util.TryO
 
 class ClientConnectionHandler(
   port: Int,
-  userSocketMap: ConcurrentMap[Long, Socket]
+  userSocketMap: ConcurrentMap[Long, Socket],
+  loggingOpt: Option[Logger] = None
 ) {
 
   lazy val serverSocket: ServerSocket = new ServerSocket(port)
 
   def startF: Future[Unit] = {
     Future {
-      while (true) {
-        val clientSocket = serverSocket.accept()
-        val bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream))
-        val clientString = bufferedReader.readLine()
-        addConnection(clientString, clientSocket)
+      try {
+        while (true) {
+          val clientSocket = serverSocket.accept()
+          val bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream))
+          val clientString = bufferedReader.readLine()
+          addConnection(clientString, clientSocket)
+        }
+      } finally {
+        cleanup()
       }
     }
   }
@@ -67,7 +73,11 @@ class ClientConnectionHandler(
         outputStream.write(eolBytes)
         outputStream.flush()
       } catch {
-        case _: Exception => closeConnection(userId)
+        case e: Exception => {
+          loggingOpt.foreach(_.warning(s"Exception in ClientConnectionHandler: ${e.getMessage}"))
+          loggingOpt.foreach(_.warning(s"Closing connection for $userId"))
+          closeConnection(userId)
+        }
       }
     }
   }

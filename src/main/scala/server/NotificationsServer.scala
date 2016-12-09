@@ -3,13 +3,13 @@ package server
 import events.EventProcessor
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.{ServerSocket, Socket}
+import java.util.logging.Logger;
 import scala.collection.concurrent.{Map => ConcurrentMap, TrieMap}
 import scala.collection.mutable.StringBuilder
 import scala.concurrent.duration.{Duration, MILLISECONDS}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import util.TryO
-import java.util.logging.Logger;
 
 class NotificationsServer(
   eventConnectionHandler: EventConnectionHandler,
@@ -52,14 +52,19 @@ object NotificationsServer {
     val clientPort = argsMap.get("--clientPort").flatMap(TryO.toInt).getOrElse(9099)
     val sortWindow = argsMap.get("--sortWindow").flatMap(TryO.toInt).getOrElse(250)
 
-    val clientConnectionHandler = new ClientConnectionHandler(clientPort, new TrieMap[Long, Socket]())
+    val clientConnectionHandler =
+      new ClientConnectionHandler(
+        clientPort,
+        new TrieMap[Long, Socket](),
+        Some(logger)
+      )
     val eventProcessor =
       new EventProcessor(
         publishFn = clientConnectionHandler.publishToConnections(_),
         publishCleanupFn = () => clientConnectionHandler.cleanup(),
         sortWindow = sortWindow
       )
-    val eventConnectionHandler = new EventConnectionHandler(eventPort, eventProcessor)
+    val eventConnectionHandler = new EventConnectionHandler(eventPort, eventProcessor, Some(logger))
     val server = new NotificationsServer(eventConnectionHandler, clientConnectionHandler)
 
     val startF = server.startF
