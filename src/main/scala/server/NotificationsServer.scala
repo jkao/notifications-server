@@ -13,6 +13,9 @@ import util.TryO
 
 /*
  * Represents an instance of a server
+ * @constructor create new instance of NotificationsServer
+ * @param eventConnectionHandler event connection handler for the event source
+ * @param clientConnectionHandler client connection handler for client sources
  */
 class NotificationsServer(
   eventConnectionHandler: EventConnectionHandler,
@@ -28,9 +31,7 @@ class NotificationsServer(
   }
 }
 
-/*
- * Main server entry point
- */
+/** Main server entry point */
 object NotificationsServer {
 
   val logger = Logger.getLogger("NotificationsServer")
@@ -58,12 +59,7 @@ object NotificationsServer {
     val clientPort = argsMap.get("--clientPort").flatMap(TryO.toInt).getOrElse(9099)
     val sortWindow = argsMap.get("--sortWindow").flatMap(TryO.toInt).getOrElse(250)
 
-    val clientConnectionHandler =
-      new ClientConnectionHandler(
-        clientPort,
-        new TrieMap[Long, Socket](),
-        Some(logger)
-      )
+    val clientConnectionHandler = new ClientConnectionHandler(clientPort, Some(logger))
     val eventProcessor =
       new EventProcessor(
         publishFn = clientConnectionHandler.publishToConnections(_),

@@ -11,9 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import util.TryO
 
-/*
- * Events are prioritize by min sequence number
- */
+/** Events are prioritize by min sequence number */
 case object EventOrder extends Comparator[Event] {
   def compare(e1: Event, e2: Event) = {
     implicitly[Ordering[Long]].compare(e1.sequenceNumber, e2.sequenceNumber)
@@ -22,6 +20,9 @@ case object EventOrder extends Comparator[Event] {
 
 /*
  * Parameters passed when publishing to clients
+ * @param userIds userIds to publish to
+ * @param payload string payload to publish to clients
+ * @param broadcast if true, publish to all available client connections, ignoring userIds
  */
 case class EventPublishParams(
   userIds: Vector[Long],
@@ -31,6 +32,10 @@ case class EventPublishParams(
 
 /*
  * Class that handles the routing of event targets and follower map
+ * @constructor create new instance of EventProcessor
+ * @param publishFn function that receives EventPublishParams for publishing to clients
+ * @param publishCleanupFn any potential cleanup required for cleanup when EventProcessor finishes
+ * @param sortWindow if events come out of order, specify the window size to sort these events
  */
 class EventProcessor(
   publishFn: (EventPublishParams) => Unit,
@@ -41,10 +46,15 @@ class EventProcessor(
   val followersMap: ConcurrentMap[Long, Set[Long]] = new TrieMap[Long, Set[Long]]()
   val heap: PriorityBlockingQueue[Event] = new PriorityBlockingQueue[Event](sortWindow, EventOrder)
 
+  /*
+   * Process an event string
+   * @param eventStr raw string to parse and maybe publish to clients
+   */
   def process(eventStr: String): Unit = {
     EventParser.parse(eventStr).foreach(maybeProcess)
   }
 
+  /** Cleanup and flush out any remaining events to publish */
   def cleanup: Unit = {
     while (!heap.isEmpty) {
       process_!(heap.poll)

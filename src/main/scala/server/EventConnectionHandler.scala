@@ -12,6 +12,10 @@ import util.TryO
 
 /*
  * Class that handles interactions with the event source socket.
+ * @constructor create new instance of an EventConnectionHandler
+ * @param port port to handle event connections
+ * @param eventProcessor EventProcessor object to handle incoming events from event source
+ * @param loggingOpt pass in an optional logging device for debugging
  */
 class EventConnectionHandler(
   port: Int,
@@ -21,6 +25,7 @@ class EventConnectionHandler(
 
   lazy val serverSocket: ServerSocket = new ServerSocket(port)
 
+  /** Start instance of event connection handler in new Future  */
   def startF: Future[Unit] = {
     Future {
       try {

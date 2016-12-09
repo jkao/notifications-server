@@ -1,8 +1,6 @@
 package events
 
-/*
- * Represents SoundCloud users to notify from event
- */
+/** Represents SoundCloud users to notify from event */
 sealed abstract class NotificationTargets
 
 case class NotifySome(targets: Seq[Long]) extends NotificationTargets
@@ -10,9 +8,7 @@ case object NotifyNone extends NotificationTargets
 case class NotifyFollowers(from: Long) extends NotificationTargets
 case object NotifyAll extends NotificationTargets
 
-/*
- * Represents a SoundCloud event
- */
+/** Represents a SoundCloud event */
 sealed abstract class Event {
   def payload: String
   def sequenceNumber: Long

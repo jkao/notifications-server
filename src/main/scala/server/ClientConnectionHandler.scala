@@ -12,15 +12,16 @@ import util.TryO
 
 /*
  * Class that handles interactions with client socket sources.
+ * @constructor create new instance of a ClientConnectionHandler
+ * @param port port to handle client connections
+ * @param loggingOpt pass in an optional logging device for debugging
  */
-class ClientConnectionHandler(
-  port: Int,
-  userSocketMap: ConcurrentMap[Long, Socket],
-  loggingOpt: Option[Logger] = None
-) {
+class ClientConnectionHandler(port: Int, loggingOpt: Option[Logger] = None) {
 
+  lazy val userSocketMap: ConcurrentMap[Long, Socket] = new TrieMap[Long, Socket]()
   lazy val serverSocket: ServerSocket = new ServerSocket(port)
 
+  /** Start instance of client connection handler in new Future  */
   def startF: Future[Unit] = {
     Future {
       try {
@@ -36,11 +37,11 @@ class ClientConnectionHandler(
     }
   }
 
-  def addConnection(userIdStr: String, socket: Socket): Unit = {
+  private def addConnection(userIdStr: String, socket: Socket): Unit = {
     TryO.toLong(userIdStr).foreach(addConnection(_, socket))
   }
 
-  def addConnection(userId: Long, socket: Socket): Unit = {
+  private def addConnection(userId: Long, socket: Socket): Unit = {
     val replacedSocketOpt = {
       val replaced = userSocketMap.replace(userId, socket)
       replaced.foreach(_.close())
@@ -51,13 +52,17 @@ class ClientConnectionHandler(
     }
   }
 
-  def closeConnection(userId: Long): Unit = {
+  private def closeConnection(userId: Long): Unit = {
     userSocketMap.get(userId).foreach(socket => {
       TryO { socket.close() }
     })
     userSocketMap -= userId
   }
 
+  /*
+   * Method to publish payloads to connected clients
+   * @param params params specifying who to target and what to broadcast
+   */
   def publishToConnections(params: EventPublishParams): Unit = {
     val targets =
       if (params.broadcast) {
@@ -85,6 +90,8 @@ class ClientConnectionHandler(
     }
   }
 
+  /** Method to cleanup connections handled by this instance.
+   *  Call this when finishing up with this instance. */
   def cleanup(): Unit = {
     for {
       (userId, socket) <- userSocketMap

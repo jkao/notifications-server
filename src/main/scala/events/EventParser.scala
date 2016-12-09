@@ -2,11 +2,13 @@ package events
 
 import util.TryO
 
-/*
- * Parses an arbitrary string into an Event object
- */
+/** Utility object for parsing event strings */
 object EventParser {
 
+  /*
+   * Process an event string
+   * @param event raw string to parse into an event
+   */
   def parse(event: String): Option[Event] = {
     val splitString = event.split('|')
     splitString match {
