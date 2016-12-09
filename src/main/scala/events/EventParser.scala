@@ -2,6 +2,9 @@ package events
 
 import util.TryO
 
+/*
+ * Parses an arbitrary string into an Event object
+ */
 object EventParser {
 
   def parse(event: String): Option[Event] = {
