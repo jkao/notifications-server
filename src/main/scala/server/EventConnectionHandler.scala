@@ -10,6 +10,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import util.TryO
 
+/*
+ * Class that handles interactions with the event source socket.
+ */
 class EventConnectionHandler(
   port: Int,
   eventProcessor: EventProcessor,

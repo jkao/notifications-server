@@ -11,6 +11,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import util.TryO
 
+/*
+ * Represents an instance of a server
+ */
 class NotificationsServer(
   eventConnectionHandler: EventConnectionHandler,
   clientConnectionHandler: ClientConnectionHandler
@@ -25,6 +28,9 @@ class NotificationsServer(
   }
 }
 
+/*
+ * Main server entry point
+ */
 object NotificationsServer {
 
   val logger = Logger.getLogger("NotificationsServer")

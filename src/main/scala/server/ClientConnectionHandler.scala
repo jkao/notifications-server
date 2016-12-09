@@ -10,6 +10,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import util.TryO
 
+/*
+ * Class that handles interactions with client socket sources.
+ */
 class ClientConnectionHandler(
   port: Int,
   userSocketMap: ConcurrentMap[Long, Socket],

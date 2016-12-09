@@ -11,18 +11,27 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import util.TryO
 
+/*
+ * Events are prioritize by min sequence number
+ */
 case object EventOrder extends Comparator[Event] {
   def compare(e1: Event, e2: Event) = {
     implicitly[Ordering[Long]].compare(e1.sequenceNumber, e2.sequenceNumber)
   }
 }
 
+/*
+ * Parameters passed when publishing to clients
+ */
 case class EventPublishParams(
   userIds: Vector[Long],
   payload: String,
   broadcast: Boolean
 )
 
+/*
+ * Class that handles the routing of event targets and follower map
+ */
 class EventProcessor(
   publishFn: (EventPublishParams) => Unit,
   publishCleanupFn: () => Unit,

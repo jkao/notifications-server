@@ -13,7 +13,7 @@ Run the prebuilt JAR:
 ./notification-server.sh
 ```
 
-Build & run with SBT
+Build & run with [SBT](http://www.scala-sbt.org/)
 ```
 sbt run \
   [--eventPort $EVENT_PORT] \
