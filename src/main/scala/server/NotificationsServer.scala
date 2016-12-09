@@ -21,6 +21,7 @@ class NotificationsServer(
   eventConnectionHandler: EventConnectionHandler,
   clientConnectionHandler: ClientConnectionHandler
 ) {
+  /** Start instance of server */
   def startF: Future[Unit] = {
     val eventSourceF = eventConnectionHandler.startF
     val clientConnectionsF = clientConnectionHandler.startF
